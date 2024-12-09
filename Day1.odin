@@ -54,22 +54,31 @@ Your actual left and right lists contain many location IDs. What is the total di
 
 package AdventOfCode
 
-import "core:os"
-import "core:bufio"
-import "core:fmt"
 import "core:strings"
 import "core:slice"
 
+Day1ParserOutput :: struct {
+    left, right: [dynamic]i64
+}
+
+d1LineParser : lineParseFunction : proc(line: string, output: rawptr) {
+    output := (^Day1ParserOutput)(output)
+    numbers := strings.split(line, "   ")
+    append(&output^.left, stringToInt(numbers[0]))
+    append(&output^.right, stringToInt(numbers[1]))
+}
+
 d1p1 :: proc(inputFile: string) -> (sumDistance: i64 = 0) {
-    left, right := parseFileD1(inputFile)
-    defer delete(left)
-    defer delete(right)
+    output: Day1ParserOutput = {}
+    parseFileToFunction(inputFile, d1LineParser, (rawptr)(&output))
+    defer delete(output.left)
+    defer delete(output.right)
 
-    slice.sort(left[:])
-    slice.sort(right[:])
+    slice.sort(output.left[:])
+    slice.sort(output.right[:])
 
-    for i := 0; i < len(left); i += 1 {
-        sumDistance += abs(left[i] - right[i])
+    for i := 0; i < len(output.left); i += 1 {
+        sumDistance += abs(output.left[i] - output.right[i])
     }
     return
 }
@@ -128,55 +137,28 @@ d1p2 :: proc(inputFile: string) -> (similarityScore: i64 = 0) {
             }
         }
     }
-    left, right := parseFileD1(inputFile)
-    defer delete(left)
-    defer delete(right)
 
-    slice.sort(left[:])
-    slice.sort(right[:])
+    output: Day1ParserOutput
+    parseFileToFunction(inputFile, d1LineParser, (rawptr)(&output))
+    defer delete(output.left)
+    defer delete(output.right)
 
-    length := len(right)
-    for i in left {
-        index := search(right, i)
+    slice.sort(output.left[:])
+    slice.sort(output.right[:])
+
+    length := len(output.right)
+    for i in output.left {
+        index := search(output.right, i)
         if index == -1 {
             continue
         }
         for j := index + 1; j < length; j += 1 {
-            if right[j] != i {
+            if output.right[j] != i {
                 similarityScore += i64(j - index) * i
                 break
             }
         }
     }
 
-    return
-}
-
-parseFileD1 :: proc(filepath: string) -> (left, right: [dynamic]i64) {
-    file, err := os.open(filepath)
-    defer os.close(file)
-    if err != nil {
-        fmt.eprintln("Failed to open file:", err)
-        return
-    }
-
-    reader: bufio.Reader
-    bufio.reader_init(&reader, os.stream_from_handle(file))
-    for {
-        line, err := bufio.reader_read_string(&reader, '\n')
-        if err != nil && err != .EOF {
-           fmt.eprintln("Error reading line", err)
-           return
-        }
-        defer delete(line)
-		line = strings.trim(line, "\r\n")
-        numbers := strings.split(line, "   ")
-        append(&left, stringToInt(numbers[0]))
-        append(&right, stringToInt(numbers[1]))
-
-        if err == .EOF {
-            break
-        }
-    }
     return
 }

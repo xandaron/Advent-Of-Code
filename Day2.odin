@@ -41,53 +41,38 @@ So, in this example, 2 reports are safe.
 
 package AdventOfCode
 
-import "core:bufio"
-import "core:os"
 import "core:fmt"
 import "core:strings"
 
-d2p1 :: proc(inputPath: string) -> (safeCount: i64 = 0) {
-    file, err := os.open(inputPath)
-    defer os.close(file)
-    if err != nil {
-        fmt.eprintln("Failed to open file:", err)
-        return
-    }
+Day2ParserOutput :: struct {
+    safeCount: i64
+}
 
-    reader: bufio.Reader
-    bufio.reader_init(&reader, os.stream_from_handle(file))
-    loop: for {
-        line, err := bufio.reader_read_string(&reader, '\n')
-        if err != nil && err != .EOF {
-           fmt.eprintln("Error reading line", err)
-           return
-        }
-        defer delete(line)
+d2p1LineParser : lineParseFunction : proc(line: string, output: rawptr) {
+    output := (^Day2ParserOutput)(output)
+    numbers := strings.split(line, " ")
 
-		line = strings.trim(line, "\r\n")
-        numbers := strings.split(line, " ")
+    lastInt := stringToInt(numbers[1])
+    direction := lastInt - stringToInt(numbers[0])
 
-        lastInt := stringToInt(numbers[1])
-        direction := lastInt - stringToInt(numbers[0])
-
-        if abs(direction) <= 3 && direction != 0 {
-            direction /= abs(direction)
-            for i := 2; i < len(numbers); i += 1 {
-                number := stringToInt(numbers[i])
-                diff := number - lastInt
-                if abs(diff) > 3 || diff == 0 || diff / abs(diff) != direction {
-                    continue loop // Potential error if continue is called after getting EOF error
-                }
-                lastInt = number
+    if abs(direction) <= 3 && direction != 0 {
+        direction /= abs(direction)
+        for i := 2; i < len(numbers); i += 1 {
+            number := stringToInt(numbers[i])
+            diff := number - lastInt
+            if abs(diff) > 3 || diff == 0 || diff / abs(diff) != direction {
+                return
             }
-            safeCount += 1
+            lastInt = number
         }
-
-        if err == .EOF {
-            break
-        }
+        output^.safeCount += 1
     }
-    return
+}
+
+d2p1 :: proc(inputPath: string) -> i64 {
+    output: Day2ParserOutput
+    parseFileToFunction(inputPath, d2p1LineParser, &output)
+    return output.safeCount
 }
 
 /*
@@ -110,109 +95,86 @@ More of the above example's reports are now safe:
 Thanks to the Problem Dampener, 4 reports are actually safe!
 */
 
-d2p2 :: proc(inputPath: string) -> (safeCount: i64 = 0) {
-    file, err := os.open(inputPath)
-    defer os.close(file)
-    if err != nil {
-        fmt.eprintln("Failed to open file:", err)
-        return
-    }
+d2p2LineParser : lineParseFunction : proc(line: string, output: rawptr) {
+    output := (^Day2ParserOutput)(output)
+    numbers := strings.split(line, " ")
 
-    reader: bufio.Reader
-    bufio.reader_init(&reader, os.stream_from_handle(file))
-    loop: for {
-        line, err := bufio.reader_read_string(&reader, '\n')
-        if err != nil && err != .EOF {
-           fmt.eprintln("Error reading line", err)
-           return
-        }
-        defer delete(line)
+    skippedValue := false
+    direction: i64 = 0
+    lastInt := stringToInt(numbers[1])
+    direction = lastInt - stringToInt(numbers[0])
 
-		line = strings.trim(line, "\r\n")
-        numbers := strings.split(line, " ")
-
-        skippedValue := false
-        direction: i64 = 0
-        lastInt := stringToInt(numbers[1])
-        direction = lastInt - stringToInt(numbers[0])
-
-        if abs(direction) <= 3 && direction != 0 {
-            direction /= abs(direction)
-            for i := 2; i < 4; i += 1 {
-                number := stringToInt(numbers[i])
-                diff := number - lastInt
-                if abs(diff) > 3 || diff == 0 || diff / abs(diff) != direction {
-                    skippedValue = true
-                    break
-                }
-                lastInt = number
-            }
-        }
-        else {
-            skippedValue = true
-        }
-        
-        if skippedValue {
-            foundWorkingSkip := false
-            loop2: for i := 0; i < 4; i += 1 {
-                direction = 0
-                firstInt := true
-                for j := 0; j < 4 ; j += 1 {
-                    if j == i {
-                        continue
-                    }
-
-                    if firstInt {
-                        firstInt = false
-                        lastInt = stringToInt(numbers[j])
-                        continue
-                    }
-
-                    number := stringToInt(numbers[j])
-                    diff := stringToInt(numbers[j]) - lastInt
-                    if diff == 0 || abs(diff) > 3 {
-                        continue loop2
-                    }
-
-                    if direction == 0 {
-                        direction = diff / abs(diff)
-                    }
-                    else if diff / abs(diff) != direction {
-                        continue loop2
-                    }
-                    lastInt = number
-                }
-                foundWorkingSkip = true
-                break
-            }
-            if !foundWorkingSkip {
-                if err == .EOF {
-                    break loop
-                }
-                continue loop
-            }
-        }
-
-        for i := 4; i < len(numbers); i += 1 {
+    if abs(direction) <= 3 && direction != 0 {
+        direction /= abs(direction)
+        for i := 2; i < 4; i += 1 {
             number := stringToInt(numbers[i])
             diff := number - lastInt
             if abs(diff) > 3 || diff == 0 || diff / abs(diff) != direction {
-                if skippedValue {
-                    if err == .EOF {
-                        break loop
-                    }
-                    continue loop
-                }
                 skippedValue = true
-                continue
+                break
             }
             lastInt = number
         }
-        safeCount += 1
+    }
+    else {
+        skippedValue = true
+    }
+    
+    if skippedValue {
+        foundWorkingSkip := false
+        loop: for i := 0; i < 4; i += 1 {
+            direction = 0
+            firstInt := true
+            for j := 0; j < 4 ; j += 1 {
+                if j == i {
+                    continue
+                }
 
-        if err == .EOF {
+                if firstInt {
+                    firstInt = false
+                    lastInt = stringToInt(numbers[j])
+                    continue
+                }
+
+                number := stringToInt(numbers[j])
+                diff := stringToInt(numbers[j]) - lastInt
+                if diff == 0 || abs(diff) > 3 {
+                    continue loop
+                }
+
+                if direction == 0 {
+                    direction = diff / abs(diff)
+                }
+                else if diff / abs(diff) != direction {
+                    continue loop
+                }
+                lastInt = number
+            }
+            foundWorkingSkip = true
             break
         }
+        if !foundWorkingSkip {
+            return
+        }
     }
-    return
+
+    for i := 4; i < len(numbers); i += 1 {
+        number := stringToInt(numbers[i])
+        diff := number - lastInt
+        if abs(diff) > 3 || diff == 0 || diff / abs(diff) != direction {
+            if skippedValue {
+                return
+            }
+            skippedValue = true
+            continue
+        }
+        lastInt = number
+    }
+    output^.safeCount += 1
+}
+
+d2p2 :: proc(inputPath: string) -> (safeCount: i64 = 0) {
+    output: Day2ParserOutput
+    parseFileToFunction(inputPath, d2p2LineParser, &output)
+    return output.safeCount
 }
