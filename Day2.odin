@@ -41,7 +41,6 @@ So, in this example, 2 reports are safe.
 
 package AdventOfCode
 
-import "core:fmt"
 import "core:strings"
 
 Day2ParserState :: struct {

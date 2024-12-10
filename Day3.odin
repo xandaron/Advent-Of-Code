@@ -23,11 +23,6 @@ Only the four highlighted sections are real mul instructions. Adding up the resu
 
 package AdventOfCode
 
-
-import "core:fmt"
-import "core:strings"
-import "core:text/regex/tokenizer"
-
 Day3ParserState :: struct {
     total: i64,
     doMult: b8
