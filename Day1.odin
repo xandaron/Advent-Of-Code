@@ -57,28 +57,28 @@ package AdventOfCode
 import "core:strings"
 import "core:slice"
 
-Day1ParserOutput :: struct {
+Day1ParserState :: struct {
     left, right: [dynamic]i64
 }
 
-d1LineParser : lineParseFunction : proc(line: string, output: rawptr) {
-    output := (^Day1ParserOutput)(output)
+d1LineParser : lineParseFunction : proc(line: string, state: rawptr) {
+    state := (^Day1ParserState)(state)
     numbers := strings.split(line, "   ")
-    append(&output^.left, stringToInt(numbers[0]))
-    append(&output^.right, stringToInt(numbers[1]))
+    append(&state^.left, stringToInt(numbers[0]))
+    append(&state^.right, stringToInt(numbers[1]))
 }
 
 d1p1 :: proc(inputFile: string) -> (sumDistance: i64 = 0) {
-    output: Day1ParserOutput = {}
-    parseFileToFunction(inputFile, d1LineParser, (rawptr)(&output))
-    defer delete(output.left)
-    defer delete(output.right)
+    state: Day1ParserState = {}
+    parseFileToFunction(inputFile, d1LineParser, (rawptr)(&state))
+    defer delete(state.left)
+    defer delete(state.right)
 
-    slice.sort(output.left[:])
-    slice.sort(output.right[:])
+    slice.sort(state.left[:])
+    slice.sort(state.right[:])
 
-    for i := 0; i < len(output.left); i += 1 {
-        sumDistance += abs(output.left[i] - output.right[i])
+    for i := 0; i < len(state.left); i += 1 {
+        sumDistance += abs(state.left[i] - state.right[i])
     }
     return
 }
@@ -138,27 +138,26 @@ d1p2 :: proc(inputFile: string) -> (similarityScore: i64 = 0) {
         }
     }
 
-    output: Day1ParserOutput
-    parseFileToFunction(inputFile, d1LineParser, (rawptr)(&output))
-    defer delete(output.left)
-    defer delete(output.right)
+    state: Day1ParserState
+    parseFileToFunction(inputFile, d1LineParser, &state)
+    defer delete(state.left)
+    defer delete(state.right)
 
-    slice.sort(output.left[:])
-    slice.sort(output.right[:])
+    slice.sort(state.left[:])
+    slice.sort(state.right[:])
 
-    length := len(output.right)
-    for i in output.left {
-        index := search(output.right, i)
+    length := len(state.right)
+    for i in state.left {
+        index := search(state.right, i)
         if index == -1 {
             continue
         }
         for j := index + 1; j < length; j += 1 {
-            if output.right[j] != i {
+            if state.right[j] != i {
                 similarityScore += i64(j - index) * i
                 break
             }
         }
     }
-
     return
 }

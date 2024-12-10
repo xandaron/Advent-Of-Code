@@ -44,12 +44,12 @@ package AdventOfCode
 import "core:fmt"
 import "core:strings"
 
-Day2ParserOutput :: struct {
+Day2ParserState :: struct {
     safeCount: i64
 }
 
-d2p1LineParser : lineParseFunction : proc(line: string, output: rawptr) {
-    output := (^Day2ParserOutput)(output)
+d2p1LineParser : lineParseFunction : proc(line: string, state: rawptr) {
+    state := (^Day2ParserState)(state)
     numbers := strings.split(line, " ")
 
     lastInt := stringToInt(numbers[1])
@@ -65,14 +65,14 @@ d2p1LineParser : lineParseFunction : proc(line: string, output: rawptr) {
             }
             lastInt = number
         }
-        output^.safeCount += 1
+        state^.safeCount += 1
     }
 }
 
 d2p1 :: proc(inputPath: string) -> i64 {
-    output: Day2ParserOutput
-    parseFileToFunction(inputPath, d2p1LineParser, &output)
-    return output.safeCount
+    state: Day2ParserState
+    parseFileToFunction(inputPath, d2p1LineParser, &state)
+    return state.safeCount
 }
 
 /*
@@ -95,8 +95,8 @@ More of the above example's reports are now safe:
 Thanks to the Problem Dampener, 4 reports are actually safe!
 */
 
-d2p2LineParser : lineParseFunction : proc(line: string, output: rawptr) {
-    output := (^Day2ParserOutput)(output)
+d2p2LineParser : lineParseFunction : proc(line: string, state: rawptr) {
+    state := (^Day2ParserState)(state)
     numbers := strings.split(line, " ")
 
     skippedValue := false
@@ -170,11 +170,11 @@ d2p2LineParser : lineParseFunction : proc(line: string, output: rawptr) {
         }
         lastInt = number
     }
-    output^.safeCount += 1
+    state^.safeCount += 1
 }
 
 d2p2 :: proc(inputPath: string) -> (safeCount: i64 = 0) {
-    output: Day2ParserOutput
-    parseFileToFunction(inputPath, d2p2LineParser, &output)
-    return output.safeCount
+    state: Day2ParserState
+    parseFileToFunction(inputPath, d2p2LineParser, &state)
+    return state.safeCount
 }
