@@ -111,7 +111,6 @@ Day6ParserState :: struct {
 d6LineParser : lineParseFunction : proc(line: string, state: rawptr) {
     state := (^Day6ParserState)(state)
     line := strings.clone(line)
-    line = strings.trim(line, "\r\n")
     if index := i64(strings.index(line, "^")); index != -1 {
         state^.y = index
         state^.x = i64(len(state^.lines))
