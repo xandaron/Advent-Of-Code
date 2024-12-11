@@ -59,7 +59,7 @@ d4LineParser : lineParseFunction : proc(line: string, state: rawptr) {
     append(&state^.strings, strings.clone(line))
 }
 
-d4p1 :: proc(inputPath: string) -> i64 {
+d4p1 :: proc(inputPath: string) -> (count: i64 = 0) {
     state: Day4ParserState
     defer delete(state.strings)
     defer for s in state.strings {
@@ -69,7 +69,6 @@ d4p1 :: proc(inputPath: string) -> i64 {
 
     stringsCount := len(state.strings)
     stringLength := len(state.strings[0])
-    count: i64 = 0
     for i := 0; i < stringsCount; i += 1 {
         for j := 0; j < stringLength; j += 1 {
             if state.strings[i][j] != 'X' {
@@ -150,7 +149,7 @@ M.M.M.M.M.
 In this example, an X-MAS appears 9 times.
 */
 
-d4p2 :: proc(inputPath: string) -> i64 {
+d4p2 :: proc(inputPath: string) -> (count: i64 = 0) {
     state: Day4ParserState
     defer delete(state.strings)
     defer for s in state.strings {
@@ -160,7 +159,6 @@ d4p2 :: proc(inputPath: string) -> i64 {
 
     stringsCount := len(state.strings)
     stringLength := len(state.strings[0])
-    count: i64 = 0
     for i := 1; i < stringsCount - 1; i += 1 {
         for j := 1; j < stringLength - 1; j += 1 {
             if state.strings[i][j] != 'A' {
