@@ -136,6 +136,7 @@ d6p1 :: proc(inputPath: string) -> (uniqueTiles: i64 = 1) {
     dir: Direction = .UP
     lineCount := i64(len(state.lines))
     lineLength := i64(len(state.lines[0]))
+    state.lines[state.x][state.y] = 'X'
     outer: for {
         switch dir {
         case .UP:
@@ -308,5 +309,163 @@ d6p2 :: proc(inputPath: string) -> (count: i64 = 0) {
         delete(line)
     }
     parseFileToFunction(inputPath, d6LineParser, &state)
-    return 0
+    
+    startX, startY := state.x, state.y
+
+    lineCount := i64(len(state.lines))
+    lineLength := i64(len(state.lines[0]))
+    dir: Direction = .UP
+    first: for {
+        switch dir {
+        case .UP:
+            for i := state.x; i >= 0; i -= 1 {
+                switch state.lines[i][state.y] {
+                case '.':
+                    state.lines[i][state.y] = 'X'
+                case '#':
+                    dir = .RIGHT
+                    state.x = i + 1
+                    continue first
+                }
+            }
+        case .RIGHT:
+            for i := state.y + 1; i < lineLength; i += 1 {
+                switch state.lines[state.x][i] {
+                case '.':
+                    state.lines[state.x][i] = 'X'
+                case '#':
+                    dir = .DOWN
+                    state.y = i - 1
+                    continue first
+                }
+            }
+        case .DOWN:
+            for i := state.x; i < lineCount; i += 1 {
+                switch state.lines[i][state.y] {
+                case '.':
+                    state.lines[i][state.y] = 'X'
+                case '#':
+                    dir = .LEFT
+                    state.x = i - 1
+                    continue first
+                }
+            }
+        case .LEFT:
+            for i := state.y; i >= 0; i -= 1 {
+                switch state.lines[state.x][i] {
+                case '.':
+                    state.lines[state.x][i] = 'X'
+                case '#':
+                    dir = .UP
+                    state.y = i + 1
+                    continue first
+                }
+            }
+        }
+        break
+    }
+
+    state.lines[startX][startY] = '.'
+    for x: i64 = 0; x < lineLength; x += 1 {
+        for y: i64 = 0; y < lineCount; y += 1 {
+            if x == startX && y == startY {
+                continue
+            }
+            
+            lines := make([][]u8, len(state.lines))
+            for line, i in state.lines {
+                lines[i] = transmute([]u8)strings.clone(transmute(string)line)
+            }
+            defer delete(lines)
+            defer for line in lines {
+                delete(line)
+            }
+
+            if state.lines[x][y] != 'X' {
+                continue
+            }
+            lines[x][y] = '#'
+
+            dir = .UP
+            state.x, state.y = startX, startY
+            outer: for {
+                switch dir {
+                case .UP:
+                    for i := state.x; i >= 0; i -= 1 {
+                        if lines[i][state.y] == '.' || lines[i][state.y] == 'X' {
+                            lines[i][state.y] = 0b0001
+                        }
+                        else if lines[i][state.y] == '#' {
+                            dir = .RIGHT
+                            state.x = i + 1
+                            continue outer
+                        }
+                        else if lines[i][state.y] & 0b0001 != 0 {
+                            count += 1
+                            break outer
+                        }
+                        else {
+                            lines[i][state.y] |= 0b0001
+                        }
+                    }
+                case .RIGHT:
+                    for i := state.y + 1; i < lineLength; i += 1 {
+                        if lines[state.x][i] == '.' || lines[state.x][i] == 'X' {
+                            lines[state.x][i] = 0b0010
+                        }
+                        else if lines[state.x][i] == '#' {
+                            dir = .DOWN
+                            state.y = i - 1
+                            continue outer
+                        }
+                        else if lines[state.x][i] & 0b0010 != 0 {
+                            count += 1
+                            break outer
+                        }
+                        else {
+                            lines[state.x][i] |= 0b0010
+                        }
+                    }
+                case .DOWN:
+                    for i := state.x; i < lineCount; i += 1 {
+                        if lines[i][state.y] == '.' || lines[i][state.y] == 'X' {
+                            lines[i][state.y] = 0b0100
+                        }
+                        else if lines[i][state.y] == '#' {
+                            dir = .LEFT
+                            state.x = i - 1
+                            continue outer
+                        }
+                        else if lines[i][state.y] & 0b0100 != 0 {
+                            count += 1
+                            break outer
+                        }
+                        else {
+                            lines[i][state.y] |= 0b0100
+                        }
+                    }
+                case .LEFT:
+                    for i := state.y; i >= 0; i -= 1 {
+                        if lines[state.x][i] == '.' || lines[state.x][i] == 'X' {
+                            lines[state.x][i] = 0b1000
+                        }
+                        else if lines[state.x][i] == '#' {
+                            dir = .UP
+                            state.y = i + 1
+                            continue outer
+                        }
+                        else if lines[state.x][i] & 0b1000 != 0 {
+                            count += 1
+                            break outer
+                        }
+                        else {
+                            lines[state.x][i] |= 0b1000
+                        }
+                    }
+                }
+                break
+            }
+        }
+    }
+    return
 }
