@@ -21,7 +21,7 @@ main :: proc() {
     // fmt.println(d6p2("./Day6-Input.txt"))
     // fmt.println(d7p1("./Day7-Input.txt"))
     // fmt.println(d7p2("./Day7-Test.txt"))
-    fmt.println(d7p2("./Day7-Input.txt"))
+    fmt.println(d7p2("./Day7-Input.txt")) // Takes a few minutes
 }
 
 stringToInt :: proc(s: string) -> (number: i64 = 0) {
