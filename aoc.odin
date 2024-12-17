@@ -39,13 +39,13 @@ main :: proc() {
     // fmt.println(d4p1("./Day4-Input.txt"))
     // fmt.println(d4p2("./Day4-Input.txt"))
     // fmt.println(d5p1("./Day5-Input.txt"))
-    fmt.println(d5p2("./Day5-Test.txt"))
-    fmt.println(d5p2("./Day5-Input.txt"))
+    // fmt.println(d5p2("./Day5-Input.txt"))
     // fmt.println(d6p1("./Day6-Input.txt"))
     // fmt.println(d6p2("./Day6-Input.txt"))
     // fmt.println(d7p1("./Day7-Input.txt"))
-    // fmt.println(d7p2("./Day7-Test.txt"))
     // fmt.println(d7p2("./Day7-Input.txt")) // Takes a few minutes
+    fmt.println(d8p1("./Day8-Input.txt"))
+    fmt.println(d8p2("./Day8-Input.txt"))
 }
 
 stringToInt :: proc(s: string) -> (number: i64 = 0) {
